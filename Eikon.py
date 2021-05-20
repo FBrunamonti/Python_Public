@@ -24,11 +24,13 @@ fields = [
     'TR.ISIN'
 ]
 
+address = 'E:\\Geographic_Revenues\\security_isin_subset.xlsx'
+
 # -----------------------------------------
 
 # RICs
-file = pd.read_excel('E:\\Geographic_Revenues\\security_isin_subset.xlsx')
-rics = file['RIC'].tolist()
+file = pd.read_excel(address)
+rics = file['RIC'].tolist() # Required for 
 
 print("Data imported.")
 
