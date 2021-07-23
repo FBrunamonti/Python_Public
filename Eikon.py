@@ -1,6 +1,6 @@
 # Import
 import pandas as pd
-import time
+from tqdm import tqdm, trange
 
 import eikon as ek
 ek.set_app_key('249fbcada92c44f7a1587816a282e4120b3fb4bb')
@@ -11,64 +11,65 @@ ek.set_app_key('249fbcada92c44f7a1587816a282e4120b3fb4bb')
 L is the length of each Eikon query.
 Maximum is 7500, higher is faster.
 However, too high can raise Error 408 - Timeout Exception.
+Try 4000 or 5000 first.
 '''
-L = 4000
+L = 1000
 
-fields = [
-    'CF_NAME',
-    'TR.CommonName',
-    'TR.CUSIPExtended',
-    'TR.SEDOL',
-    'TR.CIKNUMBER',
-    'TR.RIC',
-    'TR.ISIN'
-]
-
-address = 'E:\\Geographic_Revenues\\security_isin_subset.xlsx'
+address = 'C:\\Users\\Francesco\\Dropbox\\RA\\GovernmentBonds\\Datastream_Search\\Yields_Missing.xlsx'
+colName = 'MainSuperRIC'
 
 # -----------------------------------------
 
-# RICs
+# Codes
 file = pd.read_excel(address)
-rics = file['RIC'].tolist() # Required for 
+codes = file[colName].tolist()
+codes = [i for i in codes if str(i) != "nan"]
 
 print("Data imported.")
 
 # Set queries
-num_rics = len(rics)
-num_queries = num_rics // L # Returns floor
-num_leftover = num_rics - num_queries*L
+num_codes = len(codes)
+num_queries = num_codes // L # Returns floor
+num_leftover = num_codes - num_queries*L
 
-# Initialize df
-df = pd.DataFrame()
-df_list = [df]
+# Initialize list to append dataframes
+dfList = []
 
 # -----------------------------------------
 
-# Get data with loop
-print("Starting first query.")
-
-for i in range(num_queries):
-    time_start = time.time()
-    
+# Loop queries
+for i in trange(num_queries):
     start = i * L
     end = (i+1) * L
-    current_rics = rics[start:end]
+    current_codes = codes[start:end]
     
-    df_current, er = ek.get_data(current_rics, fields)
-    df_list.append(df_current)
-    
-    time_end = time.time()
-    time_total = time_end - time_start
-    time_total = round(time_total, 1)
-    print("Iterations completed: {} out of {}. Seconds: {}".format(i+1, num_queries, time_total))
+    try:
+        df_current = ek.get_timeseries(
+            current_codes,
+            fields = ["CLOSE"],
+            normalize = True,
+            start_date = "1900-01-01",
+            end_date = "2021-07-07",
+            interval = "monthly"
+        )
+        dfList.append(df_current)
+    except:
+        pass
 
 # Get residual data
-current_rics = rics[-num_leftover:]
-df_current, er = ek.get_data(current_rics, fields)
-df_list.append(df_current)
+if num_leftover > 0:
+    current_codes = codes[-num_leftover:]
+    df_current = ek.get_timeseries(
+        current_codes,
+        fields = ["CLOSE"],
+        normalize = True,
+        start_date = "1900-01-01",
+        end_date = "2021-07-07",
+        interval = "monthly"
+    )
+    dfList.append(df_current)
 
 # Concatenate, print, copy
-final = pd.concat(df_list)
+final = pd.concat(dfList)
 print(final)
-final.to_clipboard(index = False)
+final.to_clipboard(index = False, header = True)
