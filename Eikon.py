@@ -15,8 +15,23 @@ Try 4000 or 5000 first.
 '''
 L = 1000
 
-address = 'C:\\Users\\Francesco\\Dropbox\\RA\\GovernmentBonds\\Datastream_Search\\Yields_Missing.xlsx'
-colName = 'MainSuperRIC'
+address = 'C:\\Users\\Francesco\\Desktop\\RIC.xlsx'
+fields = [
+    'TR.FIIssuerName',
+    'TR.FIIssuerCountryName',
+    'TR.FIIssueDate'
+    'TR.RIC',
+    'TR.RICCode',
+    'TR.PreferredRIC'
+    'TR.FIMaturityDate',
+    'TR.FICurrency',
+    'TR.FIDomicile',
+    'TR.FIIndustrySubSectorDescription',
+    'TR.GreenBondFlag',
+    'TR.FIInflationProtected',
+    'TR.FIIsHybrid',
+    'TR.FISovereignClass'
+]
 
 # -----------------------------------------
 
