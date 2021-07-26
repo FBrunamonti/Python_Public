@@ -13,9 +13,8 @@ Maximum is 7500, higher is faster.
 However, too high can raise Error 408 - Timeout Exception.
 Try 4000 or 5000 first.
 '''
-L = 1000
+L = 2000
 
-address = 'C:\\Users\\Francesco\\Desktop\\RIC.xlsx'
 fields = [
     'TR.FIIssuerName',
     'TR.FIIssuerCountryName',
@@ -33,12 +32,14 @@ fields = [
     'TR.FISovereignClass'
 ]
 
+address = 'C:\\Users\\Francesco\\Dropbox\\RA\\GovernmentBonds\\Datastream_Search\\Characteristics.xlsx'
+colName = 'ISIN'
+
 # -----------------------------------------
 
-# Codes
+# codes
 file = pd.read_excel(address)
 codes = file[colName].tolist()
-codes = [i for i in codes if str(i) != "nan"]
 
 print("Data imported.")
 
@@ -53,38 +54,24 @@ dfList = []
 # -----------------------------------------
 
 # Loop queries
+
+print("Starting first of {} queries.".format(num_queries))
+
 for i in trange(num_queries):
     start = i * L
     end = (i+1) * L
     current_codes = codes[start:end]
     
-    try:
-        df_current = ek.get_timeseries(
-            current_codes,
-            fields = ["CLOSE"],
-            normalize = True,
-            start_date = "1900-01-01",
-            end_date = "2021-07-07",
-            interval = "monthly"
-        )
-        dfList.append(df_current)
-    except:
-        pass
+    df_current, err = ek.get_data(current_codes, fields)
+    dfList.append(df_current)
 
 # Get residual data
 if num_leftover > 0:
     current_codes = codes[-num_leftover:]
-    df_current = ek.get_timeseries(
-        current_codes,
-        fields = ["CLOSE"],
-        normalize = True,
-        start_date = "1900-01-01",
-        end_date = "2021-07-07",
-        interval = "monthly"
-    )
+    df_current, err = ek.get_data(current_codes, fields)
     dfList.append(df_current)
 
 # Concatenate, print, copy
 final = pd.concat(dfList)
 print(final)
-final.to_clipboard(index = False, header = True)
+final.to_clipboard(index = False, header = False)
